@@ -1,0 +1,303 @@
+var assert = require('assert'),
+	fs     = require('fs'),
+    request   = require('request'),
+    exports =require('exports');
+var webdriverjs = require('webdriverjs'),
+    client = {};
+var chai = require('chai');    
+var expect = chai.expect;
+var opts = require('./options');
+exports.use(opts);
+var capabilities = {
+	browserName: 'chrome',
+    version: '27',
+    platform: 'XP',
+    tags: ['JJsHouse','API'],
+    name: 'JJsHouse API test'
+};
+var options = {
+	desiredCapabilities:capabilities,
+	host: 'ondemand.saucelabs.com', // Sauce Labs remote host
+	port: 80,
+    build: process.env.TRAVIS_BUILD_NUMBER ? 'build' + process.env.TRAVIS_BUILD_NUMBER : new Date().getTime(),
+    username: opts.username,
+    accessKey: opts.accessKey,
+    'record-video': true,
+    'record-screenshots': true  
+};
+function allPrpos(obj){
+	var props = '';
+	for(var p in obj){
+		console.log(p);
+	}
+}
+describe('my JJsHouse tests', function(){
+    this.timeout(999999);
+    before(function(done){
+        client = webdriverjs.remote(options);
+        client.init();
+        client.url('http://www.jjshouse.com/');
+        done();
+            //allPrpos(client);
+    });
+
+    it('JJsHouse test logo img',function(done) {
+        client
+            .getElementSize('.logo img', function(err, result) {
+                expect(err).to.be.null;
+                assert.strictEqual(result.height , 51);
+                assert.strictEqual(result.width, 244);
+            }).call(done);
+   	});
+   	
+    it('JJsHouse test title',function(done) {
+    	client
+            .getTitle(function(err, title) {
+                expect(err).to.be.null;
+                assert.strictEqual(title,'Wedding Dresses, Special Occasion Dresses, Prom Dresses 2013 at Cheap Wholesale Prices!');
+            }).call(done);
+     });
+//            .getElementCssProperty('css selector','.p_price a', 'color', function(err, result){
+//                expect(err).to.be.null;
+//                assert.strictEqual(result, '#670e7f');
+//            })
+	it('JJsHouse test search',function(done){
+		client.click('.header form input.input_text',function(err,res){
+			expect(err).to.be.null;
+		}).call(done);
+	});
+	
+	it('JJsHouse test enter goods id',function(done){
+		client.setValue('.header form input.input_text','',function(err){
+			expect(err).to.be.null;
+		}).addValue('.header form input.input_text','616',function(err,res){
+			expect(err).to.be.null;
+			if(res){
+				client.click('.header input.search',function(err){
+					expect(err).to.be.null;			
+				})
+			}
+		}).call(done);
+	})
+	
+	it('JJsHouse test goods href',function(done){
+		client.click('.product .pic a',function(err){
+			expect(err).to.be.null;
+			console.log('##########################################');
+		}).call(done);
+    });
+    
+    it('JJsHouse test window change',function(done){
+		client.windowHandles(function(err,res){
+			expect(err).to.be.null;
+			if(res){
+				client.window(res.value[1],function(err,res){
+					console.log(err);
+					expect(err).to.be.null;
+				})
+			}
+		}).call(done);
+	});
+    it('JJsHouse test cart btn',function(done){
+    	client     
+    		.getText('.goods_info h1 span',function(err,res){
+    			console.log(res.id)
+    			expect(err).to.be.null;
+    			assert.strictEqual(res,'#002000616');
+    		}).call(done);
+    });	        
+    it('JJsHouse test cart btn',function(done){
+    	client     				
+			.getValue('input#_add_to_cart',function(err,res){
+				expect(err).to.be.null;
+				assert.strictEqual(res,'Add To Cart');
+			}).call(done);
+    });        	
+    
+            	
+//    it('JJsHouse test add_to_cart hover',function(done){
+//    	client.element('id','_add_to_cart',function(err,res){
+//    		var element_res = res.value;
+//    		expect(err).to.be.null;
+//    		if(res){
+//    			client.moveTo(element_res.toString,function(err,res){
+//    			if(res){
+//    				client
+//	    				.isVisible('.tipsy-e',function(err,res){
+//	    					console.log(err);
+//	    					expect(err).to.be.null;
+//	    					assert.strictEqual(res,true);
+//	    				})
+//	    				.getText('.tipsy-inner',function(err,res){
+//							console.log(err);
+//							expect(err).to.be.null;
+//							console.log(res);
+//							assert(res,'<p>Please Provide</p><p>Color</p><p>Size</p>');
+//	    				})
+//    			}
+//				expect(err).to.be.null;
+//				})
+//    		}
+//    		
+//    	}).call(done);
+//    });		
+    				
+   it('JJsHouse test select color',function(done){		
+   		client.click('select#_color',function(err,res){
+   			expect(err).to.be.null;
+		}).call(done);
+	});
+	
+	it('JJsHouse test select color option',function(done){
+		client.click('select#_color option[value="3"]',function(err,res){
+			expect(err).to.be.null;		
+			client.getValue('select#_color',function(err,res){
+				expect(err).to.be.null;
+				assert.strictEqual(res,'3');
+			});
+			
+		}).call(done);
+	});
+	
+	it('JJshouse test select size',function(done){
+		client.click('select#_size',function(err,res){
+			expect(err).to.be.null;
+		}).call(done);
+	});
+	
+	it('JJsHouse test select size option',function(done){
+		client.click('select#_size option[value="8"]',function(err,res){
+			expect(err).to.be.null;
+			client.getValue('select#_size',function(err,res){
+				expect(err).to.be.null;
+				assert.strictEqual(res,'8');
+			});
+		}).call(done);
+	});
+	
+    it('JJsHouse test add_to_cart',function(done){
+    	client.click('#_add_to_cart',function(err){
+			expect(err).to.be.null;
+		}).call(done);
+    })        				
+
+	it('JJsHouse test cart description',function(done){
+		client.getText('.cart_style strong span:first-child',function(err,res){
+			expect(err).to.be.null;
+			assert.strictEqual(res,'Color=Ivory');
+		}).getText('.cart_style strong span:first-child + span',function(err,res){
+			expect(err).to.be.null;
+			assert.strictEqual(res,'Size=4')
+		}).call(done);
+	})
+	
+	it('JJsHouse test click checkout',function(done){
+		client.click('.btn_continue_checkout',function(err,res){
+			expect(err).to.be.null;
+		}).call(done)
+	})
+	
+	it('JJsHouse test login back to checktout',function(done){
+		var login_email = 'tyang@tetx.com';
+		var login_pwd = '111111';
+		client.addValue('td.inputcol #_email',login_email,function(err,res){
+			expect(err).to.be.null;
+		}).getValue('td.inputcol #_email',function(err,res){
+			expect(err).to.be.null;
+			assert.strictEqual(res,'tyang@tetx.com');
+		}).addValue('td.inputcol #_password',login_pwd,function(err,res){
+			expect(err).to.be.null;
+		}).getValue('td.inputcol #_password',function(err,res){
+			expect(err).to.be.null;
+			assert.strictEqual(res,'111111');
+		}).call(done);			
+	})
+	
+	it('JJsHouse test click sign in',function(done){
+		client.click('.signInBtn',function(err,res){
+			expect(err).to.be.null;
+		}).call(done);
+	})
+	
+	it('JJsHouse test select payment type',function(done){
+		client.click('.payment_info select[name="payment_id"]',function(err,res){
+			expect(err).to.be.null;
+		}).call(done);
+	})
+	
+	it('JJsHouse test select payment type option',function(done){
+		client.click('.payment_info select option[value="97"]',function(err,res){
+			expect(err).to.be.null;
+			client.getValue('.payment_info select[name="payment_id"]',function(err,res){
+				expect(err).to.be.null;
+				assert.strictEqual(res,'97');
+			});
+		}).call(done);
+	})
+	
+	it('JJsHouse test shipping fee',function(done){
+		client.getText('#span_shipping_fee',function(err,res){
+			expect(err).to.be.null;
+			assert.strictEqual(res,'95.99');
+		}).call(done);
+	})
+	
+	it('JJsHouse test click checkout button',function(done){
+		client.click('.checkout_btn',function(err,res){
+			expect(err).to.be.null;
+		}).call(done);
+	})
+	
+	
+//            				.click('#_add_to_cart',function(err){
+//            					expect(err).to.be.null;
+//            					client
+//            					.alertAccept();
+        					
+//            				.isVisible('.tipsy-e',function(err,res){
+//		    					console.log(err);
+//		    					expect(err).to.be.null;
+//		    					assert.strictEqual(res,true);
+//		    				})
+//		    				.getText('.tipsy-inner',function(err,res){
+//								console.log(err);
+//								expect(err).to.be.null;
+//								console.log(res);
+//								assert(res,'<p>Please Provide</p><p>Color</p><p>Size</p>');
+//		    				})
+       				
+            		
+            		
+            	
+            
+            
+//			.click('.cart_icon_num',function(err,result){
+//				expect(err).to.be.null;
+//				result.status.should.equal(0);
+//				result.orgStatusMessage.should.equal('The command executed successfully.');
+//			})
+            
+
+    after(function(done) {
+        var options = {
+            headers: { 'Content-Type': 'text/json' },
+            url: 'http://' + process.env.SAUCE_USERNAME + ':' + process.env.SAUCE_ACCESS_KEY + '@saucelabs.com/rest/v1/' + process.env.SAUCE_USERNAME + '/jobs/' + client.requestHandler.sessionID,
+            method: 'PUT',
+            body: JSON.stringify({
+                passed: true,
+                public: true
+            })
+        };
+
+        request(options, function(err) {
+            
+            if(err) {
+                console.log(err);
+                return;
+            }
+
+            client.end(done);
+
+        });
+    });
+});    
